@@ -1,0 +1,32 @@
+{
+  "manifest_version": "0.3",
+  "name": "qbo-mcp",
+  "display_name": "QuickBooks Online MCP Server",
+  "version": "0.0.0",
+  "description": "MCP server for QuickBooks Online - access customers, invoices, expenses, payments, and reports through AI assistants",
+  "long_description": "Provides AI assistants with structured access to your QuickBooks Online accounting data. Manage customers, invoices, expenses, payments, and financial reports through the Model Context Protocol.",
+  "author": { "name": "Wyre Technology", "url": "https://github.com/wyre-technology" },
+  "repository": { "type": "git", "url": "https://github.com/wyre-technology/qbo-mcp" },
+  "homepage": "https://github.com/wyre-technology/qbo-mcp",
+  "license": "Apache-2.0",
+  "keywords": ["quickbooks", "qbo", "accounting", "msp", "invoices", "intuit"],
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "QBO_ACCESS_TOKEN": "${user_config.qbo_access_token}",
+        "QBO_REALM_ID": "${user_config.qbo_realm_id}",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  },
+  "tools_generated": true,
+  "user_config": {
+    "qbo_access_token": { "type": "string", "title": "QBO Access Token", "description": "Your QuickBooks Online OAuth2 access token", "sensitive": true, "required": true },
+    "qbo_realm_id": { "type": "string", "title": "QBO Realm ID", "description": "Your QuickBooks Online company realm ID", "sensitive": false, "required": true }
+  },
+  "compatibility": { "platforms": ["darwin", "win32", "linux"], "runtimes": { "node": ">=18.0.0" }, "claude_desktop": ">=0.10.0" }
+}
