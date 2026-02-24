@@ -1,0 +1,190 @@
+/**
+ * QuickBooks Online REST Client
+ *
+ * Lightweight HTTP client for the QBO API with Bearer token authentication.
+ * The client does NOT handle OAuth flows -- in gateway mode the gateway passes
+ * a pre-authenticated access token; in env mode the user provides tokens directly.
+ *
+ * Base URL: https://quickbooks.api.intuit.com/v3/company/{realmId}/
+ * All requests include minorversion=73 query parameter.
+ */
+
+const QBO_API_BASE = "https://quickbooks.api.intuit.com/v3/company";
+const MINOR_VERSION = "73";
+const MAX_PAGE_SIZE = 1000;
+
+/**
+ * Configuration for the QBO client
+ */
+interface QboClientConfig {
+  accessToken: string;
+  realmId: string;
+}
+
+/**
+ * QBO query response envelope
+ */
+interface QboQueryResponse {
+  QueryResponse: Record<string, unknown>;
+}
+
+/**
+ * QuickBooks Online REST client with Bearer token authentication
+ */
+class QboClient {
+  private config: QboClientConfig;
+  private baseUrl: string;
+
+  constructor(config: QboClientConfig) {
+    this.config = config;
+    this.baseUrl = `${QBO_API_BASE}/${config.realmId}`;
+  }
+
+  /**
+   * Make an authenticated request to the QBO API
+   */
+  private async request(
+    method: string,
+    path: string,
+    params?: Record<string, string>,
+    body?: unknown
+  ): Promise<unknown> {
+    let url = `${this.baseUrl}/${path}`;
+
+    const searchParams = new URLSearchParams({
+      minorversion: MINOR_VERSION,
+      ...params,
+    });
+    url += `?${searchParams.toString()}`;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.config.accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    const options: RequestInit = { method, headers };
+    if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      const responseBody = await response.text();
+      throw new Error(
+        `QBO API error ${method} /${path} (${response.status}): ${responseBody}`
+      );
+    }
+
+    // Handle 204 No Content
+    if (response.status === 204) {
+      return null;
+    }
+
+    return response.json();
+  }
+
+  /**
+   * GET request
+   */
+  async get(path: string, params?: Record<string, string>): Promise<unknown> {
+    return this.request("GET", path, params);
+  }
+
+  /**
+   * POST request
+   */
+  async post(
+    path: string,
+    body: unknown,
+    params?: Record<string, string>
+  ): Promise<unknown> {
+    return this.request("POST", path, params, body);
+  }
+
+  /**
+   * Execute a SQL-like query against the QBO API.
+   * Uses POST to /query with the SQL string in the request body.
+   */
+  async query(sql: string): Promise<unknown> {
+    return this.request("POST", "query", undefined, sql);
+  }
+
+  /**
+   * Execute a paginated query, fetching all pages.
+   * QBO uses 1-based startPosition and maxResults for pagination.
+   */
+  async getPaginated(
+    baseSql: string,
+    maxResults: number = MAX_PAGE_SIZE
+  ): Promise<unknown[]> {
+    const allItems: unknown[] = [];
+    let startPosition = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+      const paginatedSql = `${baseSql} STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+      const response = (await this.query(paginatedSql)) as QboQueryResponse;
+
+      if (response.QueryResponse) {
+        // The entity array key varies (Customer, Invoice, etc.) - grab the first array value
+        const entities = Object.values(response.QueryResponse).find(
+          (v) => Array.isArray(v)
+        ) as unknown[] | undefined;
+
+        if (entities && entities.length > 0) {
+          allItems.push(...entities);
+          if (entities.length < maxResults) {
+            hasMore = false;
+          } else {
+            startPosition += maxResults;
+          }
+        } else {
+          hasMore = false;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    return allItems;
+  }
+}
+
+/**
+ * Singleton client instance (lazy-loaded)
+ */
+let _client: QboClient | null = null;
+
+/**
+ * Get or create the QBO client instance.
+ * Uses lazy loading to defer instantiation until first use.
+ *
+ * @throws Error if QBO_ACCESS_TOKEN or QBO_REALM_ID environment variables are not set
+ * @returns The QboClient instance
+ */
+export function getClient(): QboClient {
+  if (!_client) {
+    const accessToken = process.env.QBO_ACCESS_TOKEN;
+    const realmId = process.env.QBO_REALM_ID;
+
+    if (!accessToken || !realmId) {
+      throw new Error(
+        "QBO_ACCESS_TOKEN and QBO_REALM_ID environment variables are required. " +
+          "Provide a pre-authenticated OAuth2 access token and company realm ID."
+      );
+    }
+
+    _client = new QboClient({ accessToken, realmId });
+  }
+  return _client;
+}
+
+/**
+ * Reset the client instance.
+ * Used in gateway mode to pick up new credentials from headers.
+ */
+export function resetClient(): void {
+  _client = null;
+}
