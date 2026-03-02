@@ -1,3 +1,11 @@
+## [1.0.2](https://github.com/wyre-technology/qbo-mcp/compare/v1.0.1...v1.0.2) (2026-03-02)
+
+
+### Bug Fixes
+
+* **ci:** fix broken YAML in Discord notification step ([1ec690b](https://github.com/wyre-technology/qbo-mcp/commit/1ec690b8a48dfbce670d3383b795731e03580256))
+* **ci:** move Discord notification into release workflow ([bfe6af5](https://github.com/wyre-technology/qbo-mcp/commit/bfe6af53b15e579eb2a85c05f3e4f51b4723b1a0))
+
 ## [1.0.1](https://github.com/wyre-technology/qbo-mcp/compare/v1.0.0...v1.0.1) (2026-02-24)
 
 
