@@ -4,6 +4,7 @@
 
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { getClient } from "../utils/client.js";
+import { elicitText } from "../utils/elicitation.js";
 
 /**
  * Invoice domain tool definitions
@@ -137,7 +138,7 @@ export async function handleInvoiceTool(
 
   switch (name) {
     case "qbo_invoices_list": {
-      const {
+      let {
         startPosition = 1,
         maxResults = 100,
         status,
@@ -150,6 +151,24 @@ export async function handleInvoiceTool(
         startDate?: string;
         endDate?: string;
       };
+
+      // If no filters provided, ask the user for a date range
+      if (!status && !startDate && !endDate && Object.keys(args).length === 0) {
+        const from = await elicitText(
+          "Would you like to filter invoices by date range? Enter a start date, or leave blank to list all.",
+          "startDate",
+          "Start date (YYYY-MM-DD)"
+        );
+        if (from) {
+          startDate = from;
+          const to = await elicitText(
+            "Enter an end date for the invoice filter.",
+            "endDate",
+            "End date (YYYY-MM-DD)"
+          );
+          if (to) endDate = to;
+        }
+      }
 
       const conditions: string[] = [];
       if (status === "Paid") {

@@ -4,6 +4,7 @@
 
 import type { Tool } from "@modelcontextprotocol/sdk/types.js";
 import { getClient } from "../utils/client.js";
+import { elicitText } from "../utils/elicitation.js";
 
 /**
  * Customer domain tool definitions
@@ -127,7 +128,22 @@ export async function handleCustomerTool(
         maxResults?: number;
       };
 
-      const sql = `SELECT * FROM Customer STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+      // If called with default pagination (no explicit args), offer to search
+      let searchTerm: string | null = null;
+      if (startPosition === 1 && maxResults === 100 && Object.keys(args).length === 0) {
+        searchTerm = await elicitText(
+          "Would you like to search for a specific customer? Enter a name, or leave blank to list all.",
+          "searchTerm",
+          "Enter a customer name to search for"
+        );
+      }
+
+      let sql: string;
+      if (searchTerm) {
+        sql = `SELECT * FROM Customer WHERE DisplayName LIKE '%${searchTerm}%' STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+      } else {
+        sql = `SELECT * FROM Customer STARTPOSITION ${startPosition} MAXRESULTS ${maxResults}`;
+      }
       const response = await client.query(sql);
       return {
         content: [{ type: "text", text: JSON.stringify(response, null, 2) }],
