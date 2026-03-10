@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/wyre-technology/qbo-mcp/compare/v1.1.0...v1.1.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* **ci:** add npm ci before MCPB pack to install build dependencies ([2dc8987](https://github.com/wyre-technology/qbo-mcp/commit/2dc8987036d778c32bfc9c2e734062be2289a76a))
+
 # [1.1.0](https://github.com/wyre-technology/qbo-mcp/compare/v1.0.2...v1.1.0) (2026-03-10)
 
 
