@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/wyre-technology/qbo-mcp/compare/v1.1.1...v1.1.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* **ci:** grant contents:write to Docker job for MCPB upload ([b7265cb](https://github.com/wyre-technology/qbo-mcp/commit/b7265cb87a8803d2e0cd823e1c001b52b648500f))
+
 ## [1.1.1](https://github.com/wyre-technology/qbo-mcp/compare/v1.1.0...v1.1.1) (2026-03-10)
 
 
