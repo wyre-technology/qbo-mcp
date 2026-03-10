@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/wyre-technology/qbo-mcp/compare/v1.0.2...v1.1.0) (2026-03-10)
+
+
+### Features
+
+* **elicitation:** add MCP elicitation support with graceful fallback ([e3f9769](https://github.com/wyre-technology/qbo-mcp/commit/e3f976911808692a1f31193804853ff6df85d50d))
+
 ## [1.0.2](https://github.com/wyre-technology/qbo-mcp/compare/v1.0.1...v1.0.2) (2026-03-02)
 
 
