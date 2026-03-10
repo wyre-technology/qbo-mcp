@@ -30,6 +30,7 @@ import { expenseTools, handleExpenseTool } from "./domains/expenses.js";
 import { paymentTools, handlePaymentTool } from "./domains/payments.js";
 import { reportTools, handleReportTool } from "./domains/reports.js";
 import { resetClient } from "./utils/client.js";
+import { setServerRef } from "./utils/server-ref.js";
 
 /**
  * Transport and auth configuration types
@@ -150,6 +151,8 @@ const server = new Server(
     },
   }
 );
+
+setServerRef(server);
 
 /**
  * Handle ListTools requests - returns tools based on current state
